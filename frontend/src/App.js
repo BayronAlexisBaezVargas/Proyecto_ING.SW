@@ -2,19 +2,19 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Layout } from 'antd';
+import { Layout, Spin } from 'antd';
 
-// Proveedores de Contexto
-import { AuthProvider } from './context/AuthContext';
+// --- Proveedores de Contexto ---
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
-// Componentes y Layouts
+// --- Componentes y Layouts ---
 import AppHeader from './components/AppHeader';
 import AppFooter from './components/AppFooter';
 import CartDrawer from './components/CartDrawer';
 import CheckoutLayout from './components/CheckoutLayout';
 
-// Páginas
+// --- Páginas de la Aplicación ---
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -28,11 +28,12 @@ import AdminDashboard from './pages/AdminDashboard';
 import StockManagementPage from './pages/StockManagementPage';
 import RepairRequestsPage from './pages/RepairRequestsPage';
 
+// Estilos globales de Ant Design
 import 'antd/dist/reset.css';
 
 const { Content } = Layout;
 
-// Layout Principal: Con menú de navegación, pie de página y carrito.
+// --- Definición de Layouts ---
 const MainLayout = ({ children }) => (
     <Layout style={{ minHeight: '100vh' }}>
         <AppHeader />
@@ -46,33 +47,46 @@ const MainLayout = ({ children }) => (
     </Layout>
 );
 
+const AppRoutes = () => {
+    const { loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <Spin size="large" />
+            </div>
+        );
+    }
+
+    return (
+        <Routes>
+            <Route path="/checkout" element={<CheckoutLayout><CheckoutPage /></CheckoutLayout>} />
+            <Route path="/payment" element={<CheckoutLayout><PaymentPage /></CheckoutLayout>} />
+            <Route path="/thank-you" element={<CheckoutLayout><ThankYouPage /></CheckoutLayout>} />
+            <Route path="/*" element={<MainLayout><MainRoutes /></MainLayout>} />
+        </Routes>
+    );
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
-            <Routes>
-                {/* Rutas para el proceso de pago (sin menú principal) */}
-                <Route path="/checkout" element={<CheckoutLayout><CheckoutPage /></CheckoutLayout>} />
-                <Route path="/payment" element={<CheckoutLayout><PaymentPage /></CheckoutLayout>} />
-                <Route path="/thank-you" element={<CheckoutLayout><ThankYouPage /></CheckoutLayout>} />
-                
-                {/* Todas las demás rutas usarán el MainLayout */}
-                <Route path="/*" element={<MainLayout><MainRoutes /></MainLayout>} />
-            </Routes>
+          <AppRoutes />
         </Router>
       </CartProvider>
     </AuthProvider>
   );
 }
 
-// Componente para agrupar las rutas que van dentro del MainLayout
 const MainRoutes = () => (
     <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/comprar-bicicletas" element={<PurchasePage />} />
+        {/* AQUÍ ESTÁ LA LÍNEA CORREGIDA */}
         <Route path="/arriendos" element={<RentalsPage />} />
         <Route path="/reparaciones" element={<RepairsPage />} />
         <Route path="/admin" element={<AdminDashboard />} />

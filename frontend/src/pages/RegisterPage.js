@@ -1,85 +1,92 @@
 // frontend/src/pages/RegisterPage.js
 
-import React, { useState } from 'react';
-import { Form, Input, Button, Typography, Radio } from 'antd';
+import React from 'react';
+import { Form, Input, Button, Typography, message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
 const RegisterPage = () => {
     const navigate = useNavigate();
-    const [role, setRole] = useState('user');
 
-    const onFinish = (values) => {
-        console.log('Datos de registro recibidos:', values);
-        alert(`Usuario '${values.name}' registrado como '${values.role}'. Redirigiendo a Login.`);
-        navigate('/login');
-    };
+    const onFinish = async (values) => {
+        // Excluimos 'confirm' del objeto a enviar al backend
+        const { confirm, ...dataToSend } = values;
+        try {
+            const response = await fetch('http://localhost:8000/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSend),
+            });
 
-    const onRoleChange = (e) => {
-        setRole(e.target.value);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error en el registro.');
+            }
+            
+            // 1. Mostramos un mensaje de éxito que dura 2 segundos.
+            message.success('¡Cuenta creada exitosamente!', 2);
+            
+            // 2. Esperamos 2 segundos antes de redirigir al login.
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+
+        } catch (error) {
+            message.error(error.message);
+        }
     };
 
     return (
         <div style={{ maxWidth: '400px', margin: 'auto', paddingTop: '50px' }}>
             <Title level={2} style={{ textAlign: 'center' }}>Crear una Cuenta</Title>
-            <Form
-                name="register"
-                onFinish={onFinish}
-                layout="vertical"
-                initialValues={{ role: 'user' }}
-            >
-                <Form.Item name="role" label="Tipo de Cuenta" rules={[{ required: true }]}>
-                    <Radio.Group onChange={onRoleChange} value={role}>
-                        <Radio value="user">Cliente</Radio>
-                        <Radio value="admin">Administrador</Radio>
-                    </Radio.Group>
-                </Form.Item>
-                
-                <Form.Item name="name" label="Nombre Completo" rules={[{ required: true, message: 'Ingresa tu nombre' }]}>
+            <Form layout="vertical" onFinish={onFinish}>
+                <Form.Item name="nombre" label="Nombre Completo" rules={[{ required: true }]}>
                     <Input />
                 </Form.Item>
-
-                {/* --- NUEVO CAMPO PARA EL RUT --- */}
+                <Form.Item name="rut" label="RUT" rules={[{ required: true }]}>
+                    <Input placeholder="12345678-9" />
+                </Form.Item>
+                <Form.Item name="email" label="Correo Electrónico" rules={[{ required: true, type: 'email' }]}>
+                    <Input />
+                </Form.Item>
+                <Form.Item name="password" label="Contraseña" rules={[{ required: true }]}>
+                    <Input.Password />
+                </Form.Item>
                 <Form.Item
-                    name="rut"
-                    label="RUT"
-                    rules={[{ required: true, message: 'Por favor, ingresa tu RUT' }]}
+                    name="confirm"
+                    label="Confirmar Contraseña"
+                    dependencies={['password']}
+                    hasFeedback
+                    rules={[
+                        { required: true, message: '¡Por favor confirma tu contraseña!' },
+                        ({ getFieldValue }) => ({
+                            validator(_, value) {
+                                if (!value || getFieldValue('password') === value) {
+                                    return Promise.resolve();
+                                }
+                                return Promise.reject(new Error('¡Las dos contraseñas que ingresaste no coinciden!'));
+                            },
+                        }),
+                    ]}
                 >
-                    <Input placeholder="Ej: 12345678-9" />
+                    <Input.Password />
                 </Form.Item>
-
-                <Form.Item name="email" label="Correo Electrónico" rules={[{ required: true, type: 'email', message: 'Ingresa un correo válido' }]}>
+                <Form.Item name="telefono" label="Teléfono">
                     <Input />
                 </Form.Item>
-                
-                <Form.Item name="address" label="Dirección" rules={[{ required: true, message: 'Ingresa tu dirección' }]}>
-                    <Input placeholder="Ej: Av. Siempreviva 742" />
+                <Form.Item name="direccion" label="Dirección">
+                    <Input />
                 </Form.Item>
-                <Form.Item name="phone" label="Teléfono" rules={[{ required: true, message: 'Ingresa tu teléfono' }]}>
-                    <Input placeholder="Ej: 9 1234 5678" />
-                </Form.Item>
-
-                {role === 'admin' && (
-                    <Form.Item
-                        name="adminCode"
-                        label="Código de Administrador"
-                        rules={[{ required: true, message: 'El código es obligatorio' }]}
-                    >
-                        <Input.Password placeholder="Ingresa el código secreto" />
-                    </Form.Item>
-                )}
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-                        Crear Cuenta
-                    </Button>
+                    <Button type="primary" htmlType="submit" style={{ width: '100%' }}>Crear Cuenta</Button>
                 </Form.Item>
-                <div style={{ textAlign: 'center' }}>
-                    ¿Ya tienes una cuenta? <Link to="/login">Inicia sesión</Link>
-                </div>
+                <div style={{ textAlign: 'center' }}>¿Ya tienes una cuenta? <Link to="/login">Inicia sesión</Link></div>
             </Form>
         </div>
     );
 };
 
 export default RegisterPage;
+

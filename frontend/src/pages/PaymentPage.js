@@ -3,41 +3,53 @@
 import React from 'react';
 import { Form, Input, Button, Typography, message, Row, Col } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/CartContext'; // 1. Importamos el hook del carrito
 
 const { Title } = Typography;
 
-// Función de ayuda para crear una pausa (simula el tiempo de procesamiento)
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 const PaymentPage = () => {
     const navigate = useNavigate();
-    const { clearCart } = useCart();
+    // 2. Obtenemos los items del carrito, el total y la función para limpiar
+    const { cartItems, total, clearCart } = useCart();
 
-    // 1. Convertimos la función 'onFinish' a una función 'async'
     const onFinish = async (values) => {
         console.log('Datos de pago (simulado):', values);
         
-        // 2. Mostramos un mensaje de carga que no se cierra solo.
-        const hideLoadingMessage = message.loading('Procesando pago...', 0);
+        // 3. Obtenemos el token del usuario para autenticar la petición
+        const token = localStorage.getItem('token');
+        if (!token) {
+            message.error('No has iniciado sesión. No se puede procesar la compra.');
+            return;
+        }
 
         try {
-            // 3. Simulamos una espera de 1.5 segundos para el procesamiento.
-            await sleep(1500);
+            const response = await fetch('http://localhost:8000/api/compras', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // 4. Enviamos el token para la autenticación
+                },
+                // 5. Enviamos la lista de items y el total en el cuerpo de la petición
+                body: JSON.stringify({ items: cartItems, total }),
+            });
 
-            // 4. Cerramos manualmente el mensaje de carga.
-            hideLoadingMessage();
-            
-            // 5. Limpiamos el carrito.
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Si el backend responde con un error (ej: falta de stock), lo mostramos
+                throw new Error(data.message || 'Error al procesar la compra.');
+            }
+
+            // Si todo fue exitoso...
+            message.success('¡Pago procesado con éxito! Gracias por tu compra.', 3);
             clearCart();
             
-            // 6. Finalmente, redirigimos al usuario.
-            navigate('/thank-you');
+            setTimeout(() => {
+                navigate('/thank-you');
+            }, 3000);
 
         } catch (error) {
-            // En caso de un error, cerramos el mensaje y mostramos una alerta.
-            hideLoadingMessage();
-            message.error('Hubo un error al procesar el pago. Por favor, intenta de nuevo.');
+            message.error(error.message);
         }
     };
 

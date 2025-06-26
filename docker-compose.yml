@@ -1,5 +1,9 @@
+# masterbikes-app/docker-compose.yml
+
 version: '3.8'
+
 services:
+  # Servicio del Frontend (sin cambios)
   frontend:
     build:
       context: ./frontend
@@ -10,6 +14,8 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+
+  # Servicio del Backend (actualizado)
   backend:
     build:
       context: ./backend
@@ -17,3 +23,25 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/masterbikes
+      - JWT_SECRET=unsecretoquenadiesepalol
+    # El backend no arrancará hasta que la base de datos esté lista
+    depends_on:
+      - db
+
+  # NUEVO: Servicio de la Base de Datos PostgreSQL
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5433:5432" # El puerto 5433 de tu PC se conecta al 5432 del contenedor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: masterbikes
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+
+# Volumen para que los datos de la BD no se borren al apagar Docker
+volumes:
+  postgres_data:

@@ -19,7 +19,11 @@ export const CartProvider = ({ children }) => {
             return;
         }
 
-        const price = parseFloat((item.precio || item.precioPorDia).replace(/[$.]/g, ''));
+        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
+        // El precio ahora viene como un número desde la BD, por lo que no necesitamos usar .replace()
+        // Simplemente usamos el precio del item directamente.
+        const price = item.precio || item.precioPorDia;
+        
         const newItem = { ...item, type, price, days: 1 };
 
         setCartItems(prevItems => [...prevItems, newItem]);
@@ -35,17 +39,17 @@ export const CartProvider = ({ children }) => {
     const updateItemDays = (id, days) => {
         setCartItems(prevItems =>
             prevItems.map(item =>
-                item.id === id ? { ...item, days: days } : item
+                item.id === id ? { ...item, days } : item
             )
         );
     };
 
-    // 1. Nueva función para vaciar el carrito
     const clearCart = () => {
         setCartItems([]);
     };
 
     const total = cartItems.reduce((sum, item) => {
+        // 'item.price' ya es un número, así que la multiplicación funciona.
         return sum + (item.price * (item.days || 1));
     }, 0);
 
@@ -58,7 +62,7 @@ export const CartProvider = ({ children }) => {
         closeCart,
         updateItemDays,
         total,
-        clearCart, // 2. La exportamos para que otros componentes puedan usarla
+        clearCart,
     };
 
     return (
