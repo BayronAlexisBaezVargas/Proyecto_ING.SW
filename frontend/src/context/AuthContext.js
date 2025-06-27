@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:8000/api/verify-session', {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/verify-session`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }

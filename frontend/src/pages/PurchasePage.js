@@ -27,7 +27,7 @@ const PurchasePage = () => {
     useEffect(() => {
         const fetchProductos = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/productos?tipo=Venta');
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/productos?tipo=Venta`);
                 if (!response.ok) {
                     throw new Error('Error al cargar los productos');
                 }

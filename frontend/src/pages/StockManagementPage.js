@@ -22,9 +22,9 @@ const StockManagementPage = () => {
         try {
             // Hacemos dos llamadas a la API, una para cada tipo
             const [ventaResponse, arriendoResponse] = await Promise.all([
-                fetch('http://localhost:8000/api/productos?tipo=Venta'),
-                fetch('http://localhost:8000/api/productos?tipo=Arriendo')
-            ]);
+        fetch(`${process.env.REACT_APP_API_URL}/api/productos?tipo=Venta`),
+        fetch(`${process.env.REACT_APP_API_URL}/api/productos?tipo=Arriendo`)
+        ]);
 
             const ventaData = await ventaResponse.json();
             const arriendoData = await arriendoResponse.json();
@@ -51,7 +51,7 @@ const StockManagementPage = () => {
         const { cantidad } = values;
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8000/api/stock', {
+           const response = await fetch(`${process.env.REACT_APP_API_URL}/api/stock`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

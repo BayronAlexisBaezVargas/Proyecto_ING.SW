@@ -10,7 +10,7 @@ require('dotenv').config();
 
 // --- CONFIGURACIÓN DE LA APP ---
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 // Middlewares
 app.use(cors()); // Permite la comunicación entre el frontend y el backend

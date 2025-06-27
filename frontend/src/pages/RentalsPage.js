@@ -36,7 +36,7 @@ const RentalsPage = () => {
         const fetchProductos = async () => {
             try {
                 // Llamamos a la API pidiendo productos de tipo 'Arriendo'
-                const response = await fetch('http://localhost:8000/api/productos?tipo=Arriendo');
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/productos?tipo=Arriendo`);
                 if (!response.ok) {
                     throw new Error('Error al cargar las bicicletas de arriendo');
                 }

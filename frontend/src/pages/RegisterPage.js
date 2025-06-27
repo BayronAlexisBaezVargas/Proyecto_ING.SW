@@ -13,7 +13,7 @@ const RegisterPage = () => {
         // Excluimos 'confirm' del objeto a enviar al backend
         const { confirm, ...dataToSend } = values;
         try {
-            const response = await fetch('http://localhost:8000/api/register', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSend),
